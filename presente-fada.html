@@ -1,0 +1,321 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Sparkles, Heart, Gift, Send, X, MessageCircle, ChevronRight, ChevronLeft, Volume2, VolumeX } from 'lucide-react';
+
+/**
+ * NOTA PARA IMPLEMENTAÇÃO LOCAL (VITE):
+ * 1. Certifica-te de que o Tailwind CSS está instalado e configurado.
+ * 2. O arquivo tailwind.config.js deve incluir o diretório src.
+ * 3. O Lucide React deve estar instalado (npm install lucide-react).
+ */
+
+const App = () => {
+  const [step, setStep] = useState('opening'); // opening, story, gift
+  const [storySubStep, setStorySubStep] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formData, setFormData] = useState({ nome: '', whatsapp: '' });
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isMuted, setIsMuted] = useState(false);
+  const playerRef = useRef(null);
+
+  const vouchers = [
+    { id: '100', val: "100", min: "300" },
+    { id: '200', val: "200", min: "500" },
+    { id: '300', val: "300", min: "1.000" }
+  ];
+
+  const storyContent = [
+    {
+      title: "O Despertar",
+      text: "Com o tempo, percebi que a nossa conexão foi muito além da pele. Virou conversa leve, troca sincera, confiança... virou cuidado de verdade, daquele que aquece o coração.",
+      icon: <Heart className="w-8 h-8 text-[#FFD1D1]" />
+    },
+    {
+      title: "Cada Encontro é Único",
+      text: "Cuidar de si nunca foi apenas um procedimento. Sempre foi um gesto de carinho, respeito e amizade. Obrigada por se permitir pausar e se escolher.",
+      icon: <Sparkles className="w-8 h-8 text-[#B6D8F2]" />
+    },
+    {
+      title: "Uma Carta para Você",
+      text: "A cada vez que entrou aqui, trouxe a sua história, os seus sonhos e até os seus silêncios. Que este final de ano seja um tempo de descanso para a alma e de orgulho por tudo o que você é.",
+      icon: <Send className="w-8 h-8 text-[#FFD1D1]" />
+    }
+  ];
+
+  useEffect(() => {
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    }
+
+    window.onYouTubeIframeAPIReady = () => {
+      playerRef.current = new window.YT.Player('youtube-player', {
+        height: '0',
+        width: '0',
+        videoId: 'vB47pHbMpwQ',
+        playerVars: {
+          autoplay: 0,
+          loop: 1,
+          playlist: 'vB47pHbMpwQ',
+          controls: 0,
+          showinfo: 0,
+          modestbranding: 1
+        },
+        events: {
+          onReady: (event) => {
+            event.target.setVolume(30);
+          }
+        }
+      });
+    };
+  }, []);
+
+  const startMagic = () => {
+    setStep('story');
+    if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
+      playerRef.current.playVideo();
+    }
+  };
+
+  const nextStoryStep = () => {
+    if (storySubStep < storyContent.length - 1) {
+      setStorySubStep(storySubStep + 1);
+    } else {
+      setStep('gift');
+    }
+  };
+
+  const prevStoryStep = () => {
+    if (storySubStep > 0) {
+      setStorySubStep(storySubStep - 1);
+    } else {
+      setStep('opening');
+    }
+  };
+
+  const toggleMute = () => {
+    if (playerRef.current) {
+      if (isMuted) {
+        playerRef.current.unMute();
+      } else {
+        playerRef.current.mute();
+      }
+      setIsMuted(!isMuted);
+    }
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  const handleVoucherRequest = (e) => {
+    e.preventDefault();
+    setFormSubmitted(true);
+    const msg = `Olá! Sou a ${formData.nome}. Acabei de ler a minha carta mágica e quero garantir o meu presente para 2026. ✨`;
+    const encodedMsg = encodeURIComponent(msg);
+    const waLink = `https://wa.me/5549988429631?text=${encodedMsg}`;
+    setTimeout(() => {
+      window.open(waLink, '_blank');
+    }, 1500);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#FFF9F9] text-[#7A6B6B] font-serif selection:bg-[#E8D5D5] overflow-hidden relative flex flex-col items-center justify-center">
+      <div id="youtube-player" className="hidden"></div>
+      
+      {/* Background Decorativo */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-0 w-full h-full opacity-30 bg-[radial-gradient(circle_at_50%_50%,_#FFD1D1_0%,_transparent_50%)]"></div>
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute bg-white rounded-full opacity-40 animate-pulse"
+            style={{
+              width: Math.random() * 4 + 2 + 'px',
+              height: Math.random() * 4 + 2 + 'px',
+              top: Math.random() * 100 + '%',
+              left: Math.random() * 100 + '%',
+              animationDuration: Math.random() * 3 + 2 + 's',
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Cursor Customizado Desktop */}
+      <div 
+        className="fixed pointer-events-none z-[9999] transition-transform duration-150 ease-out hidden lg:block"
+        style={{ left: mousePos.x, top: mousePos.y, transform: 'translate(-50%, -50%)' }}
+      >
+        <Sparkles className="text-[#FFD1D1] w-5 h-5 animate-spin-slow" />
+      </div>
+
+      {/* Som Flutuante */}
+      {step !== 'opening' && (
+        <button 
+          onClick={toggleMute}
+          className="fixed top-6 right-6 z-[95] bg-white/40 backdrop-blur-md p-3 rounded-full border border-white/50 text-[#7A6B6B] hover:bg-white/80 transition-all active:scale-90 shadow-sm"
+        >
+          {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+        </button>
+      )}
+
+      {/* Conteúdo Principal */}
+      <div className="w-full max-w-5xl px-6 relative z-10">
+        
+        {/* Step 1: Abertura */}
+        {step === 'opening' && (
+          <div className="flex flex-col items-center text-center animate-fade-in max-w-2xl mx-auto">
+            <Sparkles className="w-16 h-16 text-[#B6D8F2] mb-8 animate-bounce-slow" />
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-light italic leading-tight mb-12">
+              "Este é um abraço em forma de mensagem."
+            </h1>
+            <button 
+              onClick={startMagic}
+              className="px-10 py-5 bg-white border border-[#FFD1D1] rounded-full text-[#9E8282] hover:bg-[#FFD1D1] hover:text-white transition-all duration-700 shadow-sm group overflow-hidden"
+            >
+              <span className="relative z-10 flex items-center gap-3 tracking-[0.2em] text-xs uppercase font-medium">
+                Abrir Presente <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </span>
+            </button>
+          </div>
+        )}
+
+        {/* Step 2: Jornada (Storytelling) */}
+        {step === 'story' && (
+          <div className="flex flex-col items-center animate-fade-in min-h-[400px] justify-between py-10">
+            {/* Indicador de Progresso Superior */}
+            <div className="flex gap-3 mb-12">
+              {storyContent.map((_, i) => (
+                <div key={i} className={`h-1 rounded-full transition-all duration-500 ${i <= storySubStep ? 'w-8 bg-[#FFD1D1]' : 'w-4 bg-white'}`}></div>
+              ))}
+            </div>
+
+            <div key={storySubStep} className="text-center space-y-8 animate-fade-in-up max-w-xl mx-auto">
+              <div className="flex justify-center mb-4">{storyContent[storySubStep].icon}</div>
+              <h2 className="text-2xl md:text-3xl font-light italic">{storyContent[storySubStep].title}</h2>
+              <p className="text-lg md:text-xl leading-relaxed font-light opacity-90 italic">
+                "{storyContent[storySubStep].text}"
+              </p>
+            </div>
+
+            <div className="flex items-center gap-12 mt-16">
+              <button onClick={prevStoryStep} className="p-4 rounded-full bg-white/50 hover:bg-white transition-colors">
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button 
+                onClick={nextStoryStep}
+                className="px-12 py-5 bg-[#FFD1D1] text-white rounded-full hover:bg-[#F8C4C4] transition-all shadow-lg shadow-[#FFD1D1]/20 flex items-center gap-2"
+              >
+                {storySubStep === storyContent.length - 1 ? "Ver meu Presente" : "Continuar"} <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Presente Final */}
+        {step === 'gift' && (
+          <div className="animate-fade-in-up space-y-12 py-10">
+            <div className="text-center max-w-2xl mx-auto space-y-4">
+              <Heart className="w-10 h-10 text-[#FFD1D1] mx-auto mb-2" />
+              <h2 className="text-3xl md:text-4xl font-light italic">O Seu Presente para 2026</h2>
+              <p className="text-sm md:text-base opacity-70">Preparei algo especial para que continue a escolher-se.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              {vouchers.map((v) => (
+                <div key={v.id} className="bg-white/70 backdrop-blur-md p-10 rounded-[40px] border border-white text-center group hover:-translate-y-2 transition-transform shadow-sm">
+                  <div className="text-[10px] uppercase tracking-widest text-[#B6D8F2] mb-4">Voucher</div>
+                  <div className="text-4xl font-serif text-[#7A6B6B] mb-2">R$ {v.val}</div>
+                  <div className="text-xs italic opacity-50">Em tratamentos acima de R$ {v.min}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center space-y-6">
+              <button 
+                onClick={() => setShowModal(true)}
+                className="bg-[#B6D8F2] text-white px-12 py-6 rounded-full hover:bg-[#A5C9E5] transition-all shadow-xl shadow-[#B6D8F2]/30 flex items-center gap-3 mx-auto text-lg active:scale-95"
+              >
+                Resgatar Presente Encantado <Gift className="w-6 h-6" />
+              </button>
+              <p className="text-[10px] uppercase tracking-[0.2em] opacity-40">Validade: 31/03/2026 • Um por paciente</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Modal Desktop/Mobile */}
+      {showModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#7A6B6B]/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white w-full max-w-md rounded-[48px] p-8 md:p-12 relative overflow-hidden shadow-2xl">
+            <button onClick={() => setShowModal(false)} className="absolute top-8 right-8 text-[#7A6B6B] opacity-30 hover:opacity-100 transition-opacity">
+              <X className="w-6 h-6" />
+            </button>
+
+            {!formSubmitted ? (
+              <div className="animate-fade-in-up">
+                <div className="text-center mb-10">
+                  <h3 className="text-2xl italic font-light mb-2">Quase lá...</h3>
+                  <p className="text-sm opacity-60">Deixe os seus dados para validarmos o seu presente.</p>
+                </div>
+                <form onSubmit={handleVoucherRequest} className="space-y-4">
+                  <input required type="text" placeholder="Como quer ser chamada?" className="w-full px-6 py-5 bg-[#FFF9F9] border-none rounded-2xl outline-none focus:ring-1 focus:ring-[#FFD1D1]" value={formData.nome} onChange={(e) => setFormData({...formData, nome: e.target.value})} />
+                  <input required type="tel" placeholder="Seu WhatsApp" className="w-full px-6 py-5 bg-[#FFF9F9] border-none rounded-2xl outline-none focus:ring-1 focus:ring-[#FFD1D1]" value={formData.whatsapp} onChange={(e) => setFormData({...formData, whatsapp: e.target.value})} />
+                  <button type="submit" className="w-full bg-[#FFD1D1] text-white py-5 rounded-2xl font-medium hover:bg-[#F8C4C4] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#FFD1D1]/20 mt-6">
+                    Agendar meu momento <Send className="w-4 h-4" />
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <div className="text-center py-10 animate-fade-in">
+                <div className="w-20 h-20 bg-[#E8F5E9] rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce-slow">
+                  <Heart className="w-10 h-10 text-[#81C784] fill-current" />
+                </div>
+                <h3 className="text-2xl italic font-light mb-4">Está guardado!</h3>
+                <p className="text-sm leading-relaxed opacity-70 mb-10">
+                  A magia já começou. Estamos a levar-te para o WhatsApp da Fada...
+                </p>
+                <div className="w-8 h-8 border-2 border-[#B6D8F2] border-t-transparent rounded-full animate-spin mx-auto"></div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Floating WhatsApp */}
+      <a 
+        href="https://wa.me/5549988429631"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-8 right-8 z-[90] bg-[#25D366] text-white p-5 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all"
+      >
+        <MessageCircle className="w-7 h-7" />
+      </a>
+
+      <style>{`
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        
+        .animate-fade-in { animation: fade-in 1.2s ease-out forwards; }
+        .animate-fade-in-up { animation: fade-in-up 0.8s ease-out forwards; }
+        .animate-spin-slow { animation: spin-slow 12s linear infinite; }
+        .animate-bounce-slow { animation: bounce-slow 4s ease-in-out infinite; }
+        
+        @media (min-width: 1024px) {
+          /* Para garantir que o cursor não desapareça se o Tailwind não carregar o 'hidden lg:block' corretamente */
+          .lg-cursor-visible { display: block; }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default App;

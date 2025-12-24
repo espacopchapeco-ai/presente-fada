@@ -237,7 +237,7 @@ const App = () => {
 
           {/* Menu de Navegação */}
           <nav className="fixed top-6 left-6 z-[95] bg-white/60 backdrop-blur-md p-3 rounded-full border border-white/50 text-[#7A6B6B] transition-all">
-            <Link to="/procedimentos" className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-white transition-colors hidden">
+            <Link to="/procedimentos" className="items-center gap-2 px-4 py-2 rounded-full hover:bg-white transition-colors hidden">
               <Sparkles className="w-4 h-4" />
               <span className="text-sm font-medium">Procedimentos</span>
             </Link>
